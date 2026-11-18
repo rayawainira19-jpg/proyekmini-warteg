@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Kategori extends Model
 {
     protected $table = 'kategori';
-    public $timestamps = false;
-    protected $fillable = ['nama'];
+
+    protected $fillable = [
+        'nama',
+    ];
 
     public function produk(): HasMany
     {

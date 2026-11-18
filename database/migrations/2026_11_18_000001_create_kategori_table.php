@@ -10,7 +10,9 @@ return new class extends Migration
     {
         Schema::create('kategori', function (Blueprint $table) {
             $table->id();
+            // unique() sesuai PPT slide 12: nama kategori tidak boleh ganda.
             $table->string('nama')->unique();
+            $table->timestamps();
         });
     }
 

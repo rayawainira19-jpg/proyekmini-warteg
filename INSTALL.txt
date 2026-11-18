@@ -1,0 +1,33 @@
+PAKET FILE HARI-8 — TINGGAL PASTE
+==================================
+
+Cara pakai:
+1. Extract ZIP ini. Struktur folder sudah sama dengan proyek Laravel,
+   jadi tinggal copy folder `app`, `database`, `resources` ke root
+   proyek `wartegende` kamu -> file lama akan ditimpa otomatis.
+
+2. File `routes.php` (di root ZIP ini) = isi `routes/web.php` kamu.
+   - Kalau `web.php` asli kamu KOSONG / default -> timpa seluruhnya.
+   - Kalau `web.php` asli kamu sudah ada route lain -> jangan timpa,
+     copy hanya dua baris ini ke dalam `web.php` kamu:
+        Route::redirect('/', '/katalog');
+        Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog.index');
+
+3. Jalankan di terminal (di folder proyek wartegende):
+        php artisan config:clear
+        php artisan migrate:fresh --seed
+        php artisan serve
+
+4. Buka browser: http://localhost:8000/katalog
+
+Isi paket:
+- database/migrations/   -> 5 file migration (kategori, produk, transaksi, detail, fsd-hari9)
+- app/Models/            -> 4 model (Kategori, Produk, Transaksi, DetailTransaksi)
+- database/seeders/      -> KatalogSeeder (baru) + DatabaseSeeder (timpa)
+- app/Http/Controllers/  -> KatalogController
+- resources/views/katalog/index.blade.php
+- routes.php             -> isi routes/web.php
+- PERBAIKAN-H8.md        -> daftar perubahan + alasan
+- CATATAN-DEMO-HARI-8.md -> skenario QA, tabel error, kunci exit ticket
+
+Kalau ada error saat migrate/seed/serve, copy-paste pesan error ke saya.
