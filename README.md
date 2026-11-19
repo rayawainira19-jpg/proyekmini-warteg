@@ -1,31 +1,43 @@
 # Proyek Mini Warteg Ende
 
-Aplikasi katalog dan manajemen produk untuk Warung Tegal Ende, dibangun dengan **Laravel 13** dan **PHP 8.3+**.
-Mengikuti wireframe Balsamiq 1–10, user story US-01/06/07/08, dan ERD
+Aplikasi katalog dan manajemen produk untuk Warung Tegal Ende (**Laravel 13**, **PHP 8.3+**).
+Dirancang dari wireframe Balsamiq 1–10, user story US-01/06/07/08, dan ERD
 (`kategori`, `produk`, `transaksi`, `detail_transaksi`).
 
-## Fitur
+## Halaman aplikasi
 
-Lima halaman manajemen produk di bawah `/produk`:
+Aplikasi terdiri dari 5 halaman di bawah `/produk`. Alamat `/` otomatis diarahkan ke halaman Katalog.
 
-| Halaman | Route |
-|---|---|
-| Katalog (cari dengan `?q=`) | `GET /produk` |
-| Tambah produk | `GET /produk/tambah` |
-| Ubah produk | `GET /produk/{id}/ubah` |
-| Nonaktifkan / aktifkan produk | `GET /produk/{id}/nonaktif` |
-| Hapus produk | `GET /produk/{id}/hapus` |
+### 1. Katalog Produk — `GET /produk`
+Daftar produk dalam tabel: **Kode, Nama produk, Kategori, Harga, Stok, Status, Aksi** (10 produk per halaman).
+- **Pencarian** (`?q=`) berdasarkan nama, kode, atau kategori. Kata kunci minimal 2 karakter.
+- Pencarian tanpa hasil menampilkan "Produk tidak ditemukan. Periksa kembali kata kunci pencarian."
+- Katalog kosong menampilkan "Belum ada data produk" dengan tombol **+ Tambah produk**.
+- Produk nonaktif ditampilkan redup dengan status "Nonaktif".
+- Tiap baris punya aksi **Edit | Nonaktifkan/Aktifkan | Hapus**.
 
-Alamat `/` otomatis diarahkan ke `/produk`.
+### 2. Tambah Produk — `GET /produk/tambah`
+Formulir produk baru: Kode Produk, Nama Produk, Kategori, Harga (Rp), Stok (unit), dan kotak centang Produk Aktif.
+- Tombol **Simpan Produk** menyimpan data, lalu kembali ke Katalog dengan pesan sukses.
+- Validasi: kode tidak boleh kembar, harga tidak boleh negatif, stok harus angka bulat.
+- Jika penyimpanan gagal, data yang sudah diisi tetap ada dan muncul pesan kesalahan.
 
-## Persyaratan
+### 3. Ubah Produk — `GET /produk/{id}/ubah`
+Formulir yang sama dengan halaman Tambah, sudah terisi data produk. Tombol **Simpan Perubahan** memperbarui data.
+- ID yang tidak ada → kembali ke Katalog dengan pesan "Produk tidak ditemukan atau sudah dihapus."
 
-- PHP 8.3 atau lebih baru
-- Composer
-- Node.js dan npm (untuk aset Vite)
-- SQLite (bawaan) atau MySQL
+### 4. Nonaktifkan / Aktifkan Produk — `GET /produk/{id}/nonaktif`
+Halaman konfirmasi dengan ringkasan produk. Produk nonaktif tidak tersedia untuk penjualan, tetapi datanya tetap tersimpan dan bisa diaktifkan lagi.
+Teks dan tombol menyesuaikan status: **Ya, Nonaktifkan** atau **Ya, Aktifkan**.
 
-## Instalasi
+### 5. Hapus Produk — `GET /produk/{id}/hapus`
+Halaman konfirmasi dengan dua kemungkinan tampilan:
+- **Produk tanpa riwayat transaksi** → konfirmasi, lalu tombol **Ya, Hapus**.
+- **Produk dengan riwayat transaksi** → penghapusan ditolak, ditawarkan **Nonaktifkan** sebagai gantinya.
+
+## Menjalankan
+
+Persyaratan: PHP 8.3+, Composer, Node.js + npm, dan SQLite (bawaan) atau MySQL.
 
 ```bash
 git clone https://github.com/rayawainira19-jpg/proyekmini-warteg.git
@@ -33,60 +45,34 @@ cd proyekmini-warteg
 
 composer install
 npm install
-
 cp .env.example .env
 php artisan key:generate
-```
 
-## Database
-
-**SQLite (bawaan)**
-
-```bash
-touch database/database.sqlite
-```
-
-Pastikan `.env` berisi `DB_CONNECTION=sqlite`. Jika tabel `sessions` belum dimigrasi,
-ubah `SESSION_DRIVER=file`.
-
-**MySQL**
-
-Buat database kosong, lalu isi di `.env`:
-
-```
-DB_CONNECTION=mysql
-DB_DATABASE=nama_database
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
-Jalankan migrasi dan seeder:
-
-```bash
+touch database/database.sqlite      # SQLite (bawaan, DB_CONNECTION=sqlite)
 php artisan migrate:fresh --seed
-```
-
-Seeder mengisi 4 kategori (Minuman, Makanan, Snack, Lauk) dan 12 produk contoh.
-Beberapa produk sengaja bernilai stok 0 untuk menguji label "Habis".
-
-## Menjalankan
-
-```bash
 php artisan serve
 ```
 
-Buka <http://127.0.0.1:8000/produk>. Untuk memeriksa daftar route: `php artisan route:list`.
+Buka <http://127.0.0.1:8000/produk>.
 
-## Skenario uji (FSD)
+- Jika tabel `sessions` belum dimigrasi, ubah `SESSION_DRIVER=file` di `.env`.
+- Untuk MySQL, buat database kosong lalu isi `DB_CONNECTION=mysql`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` di `.env`.
+- Seeder mengisi 4 kategori (Minuman, Makanan, Snack, Lauk) dan 12 produk contoh. Beberapa produk bernilai stok 0.
 
-- **TC-01** Tambah produk valid → tersimpan satu kali dan tampil di daftar.
-- **TC-02** Kode produk duplikat → muncul pesan "Kode sudah digunakan."
-- **TC-03** Harga negatif (mis. `-5000`) → muncul pesan "Harga tidak valid." Format seperti `15.000` atau `2,5` pada stok juga ditolak.
-- Hapus produk yang punya riwayat transaksi → ditolak, lalu ditawarkan untuk dinonaktifkan.
-- Hapus produk tanpa riwayat transaksi → muncul konfirmasi, lalu terhapus.
-- Nonaktifkan lalu aktifkan kembali sebuah produk.
-- Pencarian: `/produk?q=kopi`, `?q=xyz` (tidak ada hasil), `?q=k`.
-- `/produk/999/ubah` → kembali ke katalog dengan pesan "Produk tidak ditemukan atau sudah dihapus."
+## Skenario uji per halaman (FSD)
+
+| Halaman | Skenario | Hasil yang diharapkan |
+|---|---|---|
+| Katalog | `/produk?q=kopi` | Menampilkan produk yang cocok |
+| Katalog | `/produk?q=xyz` | "Produk tidak ditemukan..." |
+| Katalog | `/produk?q=k` | "Kata kunci minimal 2 karakter." |
+| Tambah | **TC-01** data valid (mis. kode MN-01, Ayam Goreng, harga 12000, stok 15) | Tersimpan sekali dan tampil di Katalog |
+| Tambah | **TC-02** kode duplikat | "Kode sudah digunakan." |
+| Tambah | **TC-03** harga `-5000`, juga `15.000` atau `2,5` pada stok | "Harga tidak valid." |
+| Ubah | `/produk/999/ubah` | Kembali ke Katalog: "Produk tidak ditemukan atau sudah dihapus." |
+| Nonaktifkan | Nonaktifkan lalu aktifkan kembali satu produk | Status di Katalog berubah mengikuti |
+| Hapus | Produk dengan riwayat transaksi | Ditolak, ditawarkan nonaktif |
+| Hapus | Produk tanpa riwayat transaksi | Konfirmasi, lalu terhapus |
 
 ## Dokumen pendukung
 

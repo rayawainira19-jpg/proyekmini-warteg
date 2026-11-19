@@ -33,7 +33,7 @@
                 <tbody>
                     @forelse ($produk as $item)
                         <tr>
-                            <td><span class="product-name">{{ $item->nama }}</span><span class="sku">{{ $item->sku }}</span></td>
+                            <td><span class="product-name">{{ $item->nama }}</span><span class="sku">{{ $item->kode }}</span></td>
                             <td><span class="category">{{ $item->kategori->nama }}</span></td>
                             <td class="price">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                             <td>

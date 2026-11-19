@@ -23,7 +23,7 @@ class KatalogSeeder extends Seeder {
             $alatLama->delete();
         }
 
-        // Format: [sku, nama, harga, stok, kategori_id]
+        // Format: [kode, nama, harga, stok, kategori_id]
         // Stok 0 dipakai untuk menguji label "Habis" di halaman katalog.
         foreach ([
             // Minuman
@@ -42,8 +42,8 @@ class KatalogSeeder extends Seeder {
             // Snack
             ['PIS-001', 'Pisang Goreng',       8000,  6, $snack->id],
             ['KRP-001', 'Keripik Singkong',   10000,  0, $snack->id],  // Habis
-        ] as [$sku, $nama, $harga, $stok, $kategoriId]) {
-            Produk::updateOrCreate(['sku' => $sku], [
+        ] as [$kode, $nama, $harga, $stok, $kategoriId]) {
+            Produk::updateOrCreate(['kode' => $kode], [
                 'nama'        => $nama,
                 'harga'       => $harga,
                 'stok'        => $stok,
