@@ -38,12 +38,12 @@
                         <td>{{ $p->nama }}</td>
                         <td>{{ $p->kategori->nama }}</td>
                         <td class="num">Rp{{ number_format($p->harga, 0, ',', '.') }}</td>
-                        <td>{{ $p->stok }}</td>
+                        <td>@if ($p->stok > 0){{ $p->stok }}@else<span class="habis">Habis</span>@endif</td>
                         <td>{{ $p->aktif ? 'Aktif' : 'Nonaktif' }}</td>
                         <td class="aksi">
-                            <a href="{{ route('produk.edit', $p->id) }}">Edit</a> |
-                            <a href="{{ route('produk.nonaktif.konfirmasi', $p->id) }}">{{ $p->aktif ? 'Nonaktifkan' : 'Aktifkan' }}</a> |
-                            <a href="{{ route('produk.hapus', $p->id) }}">Hapus</a>
+                            <a href="{{ route('produk.edit', $p->id) }}">Edit</a>
+                            <a href="{{ route('produk.nonaktif.konfirmasi', $p->id) }}">{{ $p->aktif ? 'Nonaktifkan' : 'Aktifkan' }}</a>
+                            <a class="hapus" href="{{ route('produk.hapus', $p->id) }}">Hapus</a>
                         </td>
                     </tr>
                 @endforeach

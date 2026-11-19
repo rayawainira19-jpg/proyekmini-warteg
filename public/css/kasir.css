@@ -19,7 +19,13 @@ button.bahaya { background: #a12626; border-color: #a12626; }
 table { width: 100%; border-collapse: collapse; background: #fff; }
 th, td { padding: .6rem .7rem; border-bottom: 1px solid #e3e3e3; text-align: left; }
 th { background: #eee; } .num { text-align: right; }
-tr.mati td { color: #888; } .aksi a { color: #1f4f9c; }
+tr.mati td { color: #888; }
+.aksi { white-space: nowrap; }
+.aksi a { display: inline-block; padding: .2rem .6rem; margin-right: .25rem; border: 1px solid #1f4f9c; border-radius: 5px; color: #1f4f9c; font-size: .85rem; text-decoration: none; }
+.aksi a:hover { background: #1f4f9c; color: #fff; }
+.aksi a.hapus { border-color: #a12626; color: #a12626; }
+.aksi a.hapus:hover { background: #a12626; color: #fff; }
+.habis { display: inline-block; padding: .1rem .5rem; border-radius: 999px; background: #fbdcdc; color: #9b1c1c; font-size: .8rem; font-weight: 600; }
 .kotak { background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 2rem; text-align: center; margin-top: 1rem; }
 .kotak.kiri { text-align: left; max-width: 640px; margin: 1.5rem auto 0; }
 .pager { display: flex; gap: 1rem; align-items: center; justify-content: flex-end; margin-top: 1rem; }
