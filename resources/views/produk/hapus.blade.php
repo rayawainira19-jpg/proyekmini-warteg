@@ -4,7 +4,7 @@
 @section('content')
     @if ($punyaRiwayat)
         <h1>Produk Memiliki Riwayat Transaksi</h1>
-        <p class="sub">Produk yang memiliki riwayat transaksi tidak dihapus.</p>
+        <p class="sub">Aturan produk yang memiliki riwayat transaksi tidak dihapus.</p>
         @include('produk._ringkas')
 
         <div class="kotak kiri">

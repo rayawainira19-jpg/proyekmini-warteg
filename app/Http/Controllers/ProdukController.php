@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProdukRequest;
 use App\Models\Kategori;
+use App\Models\Keranjang;
 use App\Models\Produk;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,7 @@ use Illuminate\View\View;
 class ProdukController extends Controller
 {
     private const TIDAK_ADA = 'Produk tidak ditemukan atau sudah dihapus.';
+    private const DI_KERANJANG = 'Produk sedang berada di keranjang transaksi berjalan. Selesaikan atau batalkan transaksi tersebut terlebih dahulu.';
 
     /** Halaman 1: katalog produk + pencarian + empty state */
     public function index(Request $request): View
@@ -34,7 +36,15 @@ class ProdukController extends Controller
             }
         }
 
-        $produk = $query->paginate(10)->withQueryString();
+        try {
+            $produk = $query->paginate(10)->withQueryString();
+        } catch (QueryException $e) {
+            return view('produk.index', [
+                'produk' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10),
+                'q'      => $q,
+                'pesan'  => 'Gagal memuat data, silakan coba lagi.',
+            ]);
+        }
 
         return view('produk.index', compact('produk', 'q', 'pesan'));
     }
@@ -56,8 +66,16 @@ class ProdukController extends Controller
             return back()->withInput()->with('gagal', 'Gagal menyimpan produk. Periksa koneksi atau coba lagi.');
         }
 
-        return redirect()->route('produk.index')
+        return redirect()->route('produk.berhasil', $p->id)
             ->with('sukses', "Produk {$p->nama} berhasil disimpan.");
+    }
+
+    /** Umpan balik setelah produk berhasil disimpan (wireframe 10) */
+    public function berhasil(int $id): View|RedirectResponse
+    {
+        $produk = Produk::with('kategori')->find($id);
+
+        return $produk ? view('produk.berhasil', compact('produk')) : $this->tidakAda();
     }
 
     /** Halaman 3: ubah produk */
@@ -87,7 +105,7 @@ class ProdukController extends Controller
             return back()->withInput()->with('gagal', 'Gagal menyimpan produk. Periksa koneksi atau coba lagi.');
         }
 
-        return redirect()->route('produk.index')
+        return redirect()->route('produk.berhasil', $produk->id)
             ->with('sukses', "Perubahan produk {$produk->nama} berhasil disimpan.");
     }
 
@@ -95,8 +113,14 @@ class ProdukController extends Controller
     public function konfirmasiNonaktif(int $id): View|RedirectResponse
     {
         $produk = Produk::with('kategori')->find($id);
+        if (! $produk) {
+            return $this->tidakAda();
+        }
+        if ($produk->aktif && $this->dalamKeranjang($id)) {
+            return redirect()->route('produk.index')->with('galat', self::DI_KERANJANG);
+        }
 
-        return $produk ? view('produk.nonaktif', compact('produk')) : $this->tidakAda();
+        return view('produk.nonaktif', compact('produk'));
     }
 
     public function nonaktif(int $id): RedirectResponse
@@ -104,6 +128,10 @@ class ProdukController extends Controller
         $produk = Produk::find($id);
         if (! $produk) {
             return $this->tidakAda();
+        }
+
+        if ($produk->aktif && $this->dalamKeranjang($id)) {
+            return redirect()->route('produk.index')->with('galat', self::DI_KERANJANG);
         }
 
         $produk->update(['aktif' => ! $produk->aktif]);
@@ -122,6 +150,10 @@ class ProdukController extends Controller
             return $this->tidakAda();
         }
 
+        if ($this->dalamKeranjang($id)) {
+            return redirect()->route('produk.index')->with('galat', self::DI_KERANJANG);
+        }
+
         $punyaRiwayat = $produk->detailTransaksi()->exists();
 
         return view('produk.hapus', compact('produk', 'punyaRiwayat'));
@@ -134,6 +166,10 @@ class ProdukController extends Controller
             return $this->tidakAda();
         }
 
+        if ($this->dalamKeranjang($id)) {
+            return redirect()->route('produk.index')->with('galat', self::DI_KERANJANG);
+        }
+
         if ($produk->detailTransaksi()->exists()) {
             return redirect()->route('produk.hapus', $id); // tampilkan halaman penolakan
         }
@@ -141,6 +177,12 @@ class ProdukController extends Controller
         $produk->delete();
 
         return redirect()->route('produk.index')->with('sukses', "Produk {$produk->nama} dihapus.");
+    }
+
+    /** US-08: produk pada keranjang transaksi berjalan tidak boleh dinonaktifkan/dihapus. */
+    private function dalamKeranjang(int $id): bool
+    {
+        return Keranjang::where('produk_id', $id)->exists();
     }
 
     private function tidakAda(): RedirectResponse

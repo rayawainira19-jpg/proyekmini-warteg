@@ -8,8 +8,9 @@
     <form method="POST" action="{{ route('produk.store') }}">
         @csrf
         @include('produk._form')
+        @include('produk._gagal')
         <div class="tombol">
-            <button type="submit">Simpan Produk</button>
+            <button type="submit">{{ session('gagal') ? 'Coba Lagi' : 'Simpan Produk' }}</button>
             <a class="btn putih" href="{{ route('produk.index') }}">Batal</a>
         </div>
     </form>

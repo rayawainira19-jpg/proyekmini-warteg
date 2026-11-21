@@ -20,13 +20,13 @@ class DetailTransaksi extends Model
     protected $fillable = [
         'transaksi_id',
         'produk_id',
-        'jumlah',
+        'qty',
         'harga_satuan',
         'subtotal',
     ];
 
     protected $casts = [
-        'jumlah'       => 'integer',
+        'qty'          => 'integer',
         'harga_satuan' => 'integer',
         'subtotal'     => 'integer',
     ];

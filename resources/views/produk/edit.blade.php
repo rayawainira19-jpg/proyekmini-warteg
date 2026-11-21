@@ -9,8 +9,9 @@
         @csrf
         @method('PUT')
         @include('produk._form')
+        @include('produk._gagal')
         <div class="tombol">
-            <button type="submit">Simpan Perubahan</button>
+            <button type="submit">{{ session('gagal') ? 'Coba Lagi' : 'Simpan Perubahan' }}</button>
             <a class="btn putih" href="{{ route('produk.index') }}">Batal</a>
         </div>
     </form>

@@ -1,21 +1,55 @@
 # Proyek Mini Warteg Ende
 
-Aplikasi katalog dan manajemen produk untuk Warung Tegal Ende, dibangun dengan **Laravel 13** dan **PHP 8.3+**.
-Mengikuti wireframe Balsamiq 1–10, user story US-01/06/07/08, dan ERD (`kategori`, `produk`, `transaksi`, `detail_transaksi`).
+Sistem kasir dan manajemen produk untuk Warung Tegal Ende, dibangun dengan **Laravel 13** dan **PHP 8.3+**.
+Mengacu pada PRD/FSD v1.0, 10 user story (US-01 sampai US-10), persona dan matriks hak akses, wireframe Balsamiq 1–10, dan ERD
+(`kategori`, `produk`, `transaksi`, `detail_transaksi`, ditambah tabel pendukung `keranjang`).
 
-## Fitur
+## Peran dan hak akses (F-01)
 
-Lima halaman manajemen produk di bawah `/produk`:
+Masuk lewat `/masuk`. Ada dua peran:
 
-| Halaman | Route |
-|---|---|
-| Katalog (cari dengan `?q=`) | `GET /produk` |
-| Tambah produk | `GET /produk/tambah` |
-| Ubah produk | `GET /produk/{id}/ubah` |
-| Nonaktifkan / aktifkan produk | `GET /produk/{id}/nonaktif` |
-| Hapus produk | `GET /produk/{id}/hapus` |
+| Fitur | Kasir | Pemilik |
+|---|---|---|
+| Melihat dan mencari produk | Ya | Ya |
+| Tambah, ubah, nonaktifkan, hapus produk | Tidak | Ya |
+| Transaksi (keranjang, bayar tunai/QRIS/transfer/kasbon, bukti) | Ya | Ya |
+| Melihat catatan kasbon | Ya | Ya |
+| Menandai kasbon lunas | Tidak | Ya |
+| Laporan penjualan harian | Tidak | Ya |
 
-Alamat `/` otomatis diarahkan ke `/produk`.
+Kasir yang membuka halaman Pemilik lewat URL dialihkan ke halaman Kasir dengan pesan "Akses ditolak: Hak akses tidak memadai" (US-09).
+
+Akun contoh dari seeder (ganti kata sandinya sebelum dipakai sungguhan):
+
+| Peran | Email | Kata sandi |
+|---|---|---|
+| Pemilik | `pemilik@warteg.test` | `pemilik123` |
+| Kasir | `kasir@warteg.test` | `kasir123` |
+
+## Halaman aplikasi
+
+| Halaman | Route | Peran |
+|---|---|---|
+| Masuk / Keluar | `/masuk`, `POST /keluar` | Semua |
+| Katalog produk (cari dengan `?q=`) | `GET /produk` | Kasir, Pemilik |
+| Tambah produk | `GET /produk/tambah` | Pemilik |
+| Produk berhasil disimpan | `GET /produk/{id}/berhasil` | Pemilik |
+| Ubah produk | `GET /produk/{id}/ubah` | Pemilik |
+| Nonaktifkan / aktifkan produk | `GET /produk/{id}/nonaktif` | Pemilik |
+| Hapus produk | `GET /produk/{id}/hapus` | Pemilik |
+| Transaksi kasir (produk, keranjang, pembayaran) | `GET /transaksi/baru` | Kasir, Pemilik |
+| Bukti transaksi (dengan tombol Cetak Ulang) | `GET /transaksi/{id}` | Kasir, Pemilik |
+| Catatan kasbon | `GET /kasbon` | Kasir, Pemilik (pelunasan: Pemilik) |
+| Laporan penjualan harian | `GET /laporan?dari=&sampai=` | Pemilik |
+
+Alamat `/` mengarahkan Pemilik ke Katalog dan Kasir ke Transaksi.
+
+## Fitur utama
+
+- **Transaksi (F-03):** produk aktif dimasukkan ke keranjang (tidak boleh melebihi stok, pesan "Stok tidak mencukupi."), total dihitung otomatis, batas maksimum Rp100.000.000. Pembayaran tunai menghitung kembalian dan menolak uang kurang atau input bukan angka positif. Stok berkurang otomatis dan harga satuan disalin saat transaksi (BR-05).
+- **Kasbon (F-04):** metode kasbon mewajibkan nama pelanggan dan berstatus `belum_lunas`. Pemilik menandainya lunas dari halaman Kasbon.
+- **Laporan (F-05, US-10):** rekap per tanggal atau rentang tanggal. Pemasukan hanya menghitung transaksi lunas, kasbon belum lunas tampil sebagai piutang. Rentang terbalik dan tanggal masa depan ditolak, dan tanpa transaksi tampil Rp0 dengan catatan "Tidak ada transaksi pada tanggal ini."
+- **Produk (F-02):** kode dan nama produk harus unik. Produk yang ada di keranjang berjalan, atau yang sudah punya riwayat transaksi, tidak dapat dihapus. Produk di keranjang juga tidak dapat dinonaktifkan.
 
 ## Persyaratan
 
@@ -35,7 +69,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-## Database
+### Database
 
 **SQLite (bawaan)**
 
@@ -45,24 +79,13 @@ touch database/database.sqlite
 
 Pastikan `.env` berisi `DB_CONNECTION=sqlite`. Jika tabel `sessions` belum dimigrasi, ubah `SESSION_DRIVER=file`.
 
-**MySQL**
+**MySQL**: buat database kosong, lalu isi `DB_CONNECTION=mysql`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` di `.env`.
 
-Buat database kosong, lalu isi di `.env`:
-
-```
-DB_CONNECTION=mysql
-DB_DATABASE=nama_database
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
-Jalankan migrasi dan seeder:
+Jalankan migrasi dan seeder (membuat 4 kategori, 12 produk contoh, dan 2 akun):
 
 ```bash
 php artisan migrate:fresh --seed
 ```
-
-Seeder mengisi 4 kategori (Minuman, Makanan, Snack, Lauk) dan 12 produk contoh. Beberapa produk sengaja bernilai stok 0 (mis. Teh Kotak dan Perkedel).
 
 ## Menjalankan
 
@@ -70,21 +93,28 @@ Seeder mengisi 4 kategori (Minuman, Makanan, Snack, Lauk) dan 12 produk contoh. 
 php artisan serve
 ```
 
-Buka <http://127.0.0.1:8000/produk>. Untuk memeriksa daftar route: `php artisan route:list`.
+Buka <http://127.0.0.1:8000> lalu masuk dengan salah satu akun di atas.
 
-## Skenario uji (FSD)
+Zona waktu aplikasi diatur ke `Asia/Makassar` (WITA) di `config/app.php`, sehingga laporan harian mengikuti tanggal setempat.
 
-- **TC-01** Tambah produk valid → tersimpan satu kali dan tampil di daftar.
-- **TC-02** Kode produk duplikat → muncul pesan "Kode sudah digunakan."
-- **TC-03** Harga negatif (mis. `-5000`) → muncul pesan "Harga tidak valid." Format seperti `15.000` atau `2,5` pada stok juga ditolak.
-- Hapus produk yang punya riwayat transaksi → ditolak, lalu ditawarkan untuk dinonaktifkan. (Seeder belum membuat data transaksi, jadi tambahkan transaksi contoh terlebih dahulu.)
-- Hapus produk tanpa riwayat transaksi → muncul konfirmasi, lalu terhapus.
-- Nonaktifkan lalu aktifkan kembali sebuah produk.
-- Pencarian: `/produk?q=kopi`, `?q=xyz` (tidak ada hasil → "Produk tidak ditemukan"), `?q=k` (kurang dari 2 karakter → "Kata kunci minimal 2 karakter.").
-- `/produk/999/ubah` → kembali ke katalog dengan pesan "Produk tidak ditemukan atau sudah dihapus."
+## Pengujian
+
+Uji otomatis (peran, validasi, transaksi, kasbon, laporan):
+
+```bash
+php artisan test
+```
+
+Tabel uji QA manual ada pada berkas Excel yang diserahkan terpisah (`Tabel-Uji-QA-Warteg-Ende.xlsx`).
 
 ## Dokumen pendukung
 
 - `PERBAIKAN-H8.md` — daftar revisi terhadap spesifikasi PPT Hari ke-8 dan FSD v1.0.
 - `CATATAN-DEMO-HARI-8.md` — skenario QA, tabel error, dan kunci exit ticket.
 - `INSTALL.txt` — panduan paket file Hari ke-8.
+
+## Catatan rancangan
+
+- Kolom `detail_transaksi.qty` mengikuti ERD. Kolom `subtotal` dan `transaksi.nomor` adalah tambahan di luar ERD.
+- Tabel `keranjang` ditambahkan agar produk yang sedang berada di keranjang dapat dicegah dinonaktifkan atau dihapus (batasan US-08).
+- Stok dan harga bernilai bulat >= 0 sesuai FSD, sehingga stok 0 diperbolehkan untuk menandai produk "Habis".
